@@ -2,28 +2,34 @@ import java.util.*;
 
 class Solution {
     public int[] sortItems(int n, int m, int[] group, List<List<Integer>> beforeItems) {
-        // 1. Assign unique group IDs to items without a group
+        // 1. Assign unique group IDs to items that don't belong to any group (-1)
+        // We start IDs from 'm' to avoid clashing with existing groups
         int groupCount = m;
         for (int i = 0; i < n; i++) {
-            if (grid[i] == -1) group[i] = groupCount++;
+            if (group[i] == -1) {
+                group[i] = groupCount++;
+            }
         }
 
-        // 2. Build Adjacency Lists and In-Degrees
+        // 2. Initialize Adjacency Lists and In-Degree arrays for both Graphs
         List<List<Integer>> itemAdj = new ArrayList<>();
-        List<List<Integer>> groupAdj = new ArrayList<>();
         for (int i = 0; i < n; i++) itemAdj.add(new ArrayList<>());
+        
+        List<List<Integer>> groupAdj = new ArrayList<>();
         for (int i = 0; i < groupCount; i++) groupAdj.add(new ArrayList<>());
 
         int[] itemInDegree = new int[n];
         int[] groupInDegree = new int[groupCount];
 
+        // 3. Build the graphs
         for (int i = 0; i < n; i++) {
             for (int prev : beforeItems.get(i)) {
-                // Item-level dependency
+                // Item-level dependency: prev -> i
                 itemAdj.get(prev).add(i);
                 itemInDegree[i]++;
                 
-                // Group-level dependency (only if different groups)
+                // Group-level dependency: group[prev] -> group[i]
+                // Only build edge if the two items belong to different groups
                 if (group[i] != group[prev]) {
                     groupAdj.get(group[prev]).add(group[i]);
                     groupInDegree[group[i]]++;
@@ -31,19 +37,23 @@ class Solution {
             }
         }
 
-        // 3. Perform Topological Sorts
+        // 4. Perform Topological Sort on both levels
         List<Integer> itemOrder = topoSort(itemAdj, itemInDegree, n);
         List<Integer> groupOrder = topoSort(groupAdj, groupInDegree, groupCount);
 
-        if (itemOrder.isEmpty() || groupOrder.isEmpty()) return new int[0];
-
-        // 4. Cluster items by their groups
-        Map<Integer, List<Integer>> groupToItems = new HashMap<>();
-        for (int item : itemOrder) {
-            groupToItems.computeIfAbsent(group[item], k -> new ArrayList<>()).add(item);
+        // If a cycle is detected in either sort, the size will be 0
+        if (itemOrder.isEmpty() || groupOrder.isEmpty()) {
+            return new int[0];
         }
 
-        // 5. Build the final result using group order
+        // 5. Cluster items into their respective groups based on sorted item order
+        Map<Integer, List<Integer>> groupToItems = new HashMap<>();
+        for (int item : itemOrder) {
+            int grpId = group[item];
+            groupToItems.computeIfAbsent(grpId, k -> new ArrayList<>()).add(item);
+        }
+
+        // 6. Concatenate the items in the order dictated by groupOrder
         int[] result = new int[n];
         int idx = 0;
         for (int grpId : groupOrder) {
@@ -56,20 +66,32 @@ class Solution {
         return result;
     }
 
+    /**
+     * Standard Kahn's Algorithm for Topological Sort
+     */
     private List<Integer> topoSort(List<List<Integer>> adj, int[] inDegree, int count) {
         List<Integer> order = new ArrayList<>();
         Queue<Integer> queue = new LinkedList<>();
+        
         for (int i = 0; i < count; i++) {
-            if (inDegree[i] == 0) queue.offer(i);
+            if (inDegree[i] == 0) {
+                queue.offer(i);
+            }
         }
 
         while (!queue.isEmpty()) {
             int curr = queue.poll();
             order.add(curr);
+            
             for (int neighbor : adj.get(curr)) {
-                if (--inDegree[neighbor] == 0) queue.offer(neighbor);
+                inDegree[neighbor]--;
+                if (inDegree[neighbor] == 0) {
+                    queue.offer(neighbor);
+                }
             }
         }
+        
+        // Return empty list if a cycle is detected (order doesn't contain all nodes)
         return order.size() == count ? order : new ArrayList<>();
     }
 }
