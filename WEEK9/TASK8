@@ -1,0 +1,19 @@
+class Solution {
+    public int minCostClimbingStairs(int[] cost) {
+        int n = cost.length;
+        int prev2 = cost[0];
+        int prev1 = cost[1];
+
+        for (int i = 2; i < n; i++) {
+            // The cost to reach the current step is its own cost 
+            // plus the minimum of the two previous total costs
+            int current = cost[i] + Math.min(prev1, prev2);
+            prev2 = prev1;
+            prev1 = current;
+        }
+
+        // The answer is the minimum of the last two steps because 
+        // you can reach the top from either one.
+        return Math.min(prev1, prev2);
+    }
+}
