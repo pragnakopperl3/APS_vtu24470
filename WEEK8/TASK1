@@ -1,0 +1,75 @@
+import java.util.*;
+
+class Solution {
+    public int[] sortItems(int n, int m, int[] group, List<List<Integer>> beforeItems) {
+        // 1. Assign unique group IDs to items without a group
+        int groupCount = m;
+        for (int i = 0; i < n; i++) {
+            if (grid[i] == -1) group[i] = groupCount++;
+        }
+
+        // 2. Build Adjacency Lists and In-Degrees
+        List<List<Integer>> itemAdj = new ArrayList<>();
+        List<List<Integer>> groupAdj = new ArrayList<>();
+        for (int i = 0; i < n; i++) itemAdj.add(new ArrayList<>());
+        for (int i = 0; i < groupCount; i++) groupAdj.add(new ArrayList<>());
+
+        int[] itemInDegree = new int[n];
+        int[] groupInDegree = new int[groupCount];
+
+        for (int i = 0; i < n; i++) {
+            for (int prev : beforeItems.get(i)) {
+                // Item-level dependency
+                itemAdj.get(prev).add(i);
+                itemInDegree[i]++;
+                
+                // Group-level dependency (only if different groups)
+                if (group[i] != group[prev]) {
+                    groupAdj.get(group[prev]).add(group[i]);
+                    groupInDegree[group[i]]++;
+                }
+            }
+        }
+
+        // 3. Perform Topological Sorts
+        List<Integer> itemOrder = topoSort(itemAdj, itemInDegree, n);
+        List<Integer> groupOrder = topoSort(groupAdj, groupInDegree, groupCount);
+
+        if (itemOrder.isEmpty() || groupOrder.isEmpty()) return new int[0];
+
+        // 4. Cluster items by their groups
+        Map<Integer, List<Integer>> groupToItems = new HashMap<>();
+        for (int item : itemOrder) {
+            groupToItems.computeIfAbsent(group[item], k -> new ArrayList<>()).add(item);
+        }
+
+        // 5. Build the final result using group order
+        int[] result = new int[n];
+        int idx = 0;
+        for (int grpId : groupOrder) {
+            List<Integer> items = groupToItems.getOrDefault(grpId, new ArrayList<>());
+            for (int item : items) {
+                result[idx++] = item;
+            }
+        }
+
+        return result;
+    }
+
+    private List<Integer> topoSort(List<List<Integer>> adj, int[] inDegree, int count) {
+        List<Integer> order = new ArrayList<>();
+        Queue<Integer> queue = new LinkedList<>();
+        for (int i = 0; i < count; i++) {
+            if (inDegree[i] == 0) queue.offer(i);
+        }
+
+        while (!queue.isEmpty()) {
+            int curr = queue.poll();
+            order.add(curr);
+            for (int neighbor : adj.get(curr)) {
+                if (--inDegree[neighbor] == 0) queue.offer(neighbor);
+            }
+        }
+        return order.size() == count ? order : new ArrayList<>();
+    }
+}
