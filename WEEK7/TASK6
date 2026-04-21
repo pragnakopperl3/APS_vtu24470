@@ -1,0 +1,28 @@
+class Solution {
+    public boolean canVisitAllRooms(List<List<Integer>> rooms) {
+        boolean[] visited = new boolean[rooms.size()];
+        
+        // Start the traversal from room 0
+        dfs(0, rooms, visited);
+        
+        // Check if every room was visited
+        for (boolean v : visited) {
+            if (!v) return false;
+        }
+        
+        return true;
+    }
+    
+    private void dfs(int roomIndex, List<List<Integer>> rooms, boolean[] visited) {
+        // Mark current room as visited
+        visited[roomIndex] = true;
+        
+        // Look at all keys available in this room
+        for (int key : rooms.get(roomIndex)) {
+            // If we haven't been to the room the key opens, go there
+            if (!visited[key]) {
+                dfs(key, rooms, visited);
+            }
+        }
+    }
+}
