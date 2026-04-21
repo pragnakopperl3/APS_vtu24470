@@ -1,0 +1,65 @@
+import java.util.*;
+
+class Solution {
+    int[] count;
+
+    public List<Integer> countSmaller(int[] nums) {
+        int n = nums.length;
+        this.count = new int[n];
+        int[] indices = new int[n];
+        
+        // Initialize indices array to keep track of original positions
+        for (int i = 0; i < n; i++) indices[i] = i;
+
+        mergeSort(nums, indices, 0, n - 1);
+
+        List<Integer> result = new ArrayList<>();
+        for (int c : count) result.add(c);
+        return result;
+    }
+
+    private void mergeSort(int[] nums, int[] indices, int left, int right) {
+        if (left >= right) return;
+
+        int mid = left + (right - left) / 2;
+        mergeSort(nums, indices, left, mid);
+        mergeSort(nums, indices, mid + 1, right);
+
+        merge(nums, indices, left, mid, right);
+    }
+
+    private void merge(int[] nums, int[] indices, int left, int mid, int right) {
+        int[] tempIndices = new int[right - left + 1];
+        int l = left;
+        int r = mid + 1;
+        int k = 0;
+        int rightSmallerCount = 0;
+
+        while (l <= mid && r <= right) {
+            // If the element in the right subarray is smaller than the left
+            if (nums[indices[r]] < nums[indices[l]]) {
+                tempIndices[k++] = indices[r++];
+                // Increment the counter of smaller elements seen so far on the right
+                rightSmallerCount++;
+            } else {
+                // When we pull from the left, add the current rightSmallerCount to its total
+                count[indices[l]] += rightSmallerCount;
+                tempIndices[k++] = indices[l++];
+            }
+        }
+
+        // Clean up remaining elements
+        while (l <= mid) {
+            count[indices[l]] += rightSmallerCount;
+            tempIndices[k++] = indices[l++];
+        }
+        while (r <= right) {
+            tempIndices[k++] = indices[r++];
+        }
+
+        // Copy temp array back to indices
+        for (int i = 0; i < tempIndices.length; i++) {
+            indices[left + i] = tempIndices[i];
+        }
+    }
+}
