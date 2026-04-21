@@ -1,0 +1,65 @@
+import java.util.*;
+
+class Solution {
+    public int[] shortestAlternatingPaths(int n, int[][] redEdges, int[][] blueEdges) {
+        // 1. Build Adjacency Lists
+        // 0 = Red, 1 = Blue
+        List<Integer>[] redAdj = new ArrayList[n];
+        List<Integer>[] blueAdj = new ArrayList[n];
+        for (int i = 0; i < n; i++) {
+            redAdj[i] = new ArrayList<>();
+            blueAdj[i] = new ArrayList<>();
+        }
+        for (int[] edge : redEdges) redAdj[edge[0]].add(edge[1]);
+        for (int[] edge : blueEdges) blueAdj[edge[0]].add(edge[1]);
+
+        // 2. Prepare Result and Visited arrays
+        int[] result = new int[n];
+        Arrays.fill(result, -1);
+        
+        // visited[node][0] = visited via red, visited[node][1] = visited via blue
+        boolean[][] visited = new boolean[n][2];
+
+        // 3. BFS
+        // Queue stores: {node, distance, last_color}
+        // color: 0 for Red, 1 for Blue
+        Queue<int[]> queue = new LinkedList<>();
+        
+        // Start from node 0 with "no color" (represented by -1)
+        queue.offer(new int[]{0, 0, -1});
+        visited[0][0] = true;
+        visited[0][1] = true;
+
+        while (!queue.isEmpty()) {
+            int[] curr = queue.poll();
+            int node = curr[0];
+            int dist = curr[1];
+            int lastColor = curr[2];
+
+            // Update result: if -1, set it; otherwise, keep the smaller value (BFS ensures first reach is shortest)
+            if (result[node] == -1) result[node] = dist;
+
+            // Try moving to a RED edge (if last was blue or none)
+            if (lastColor != 0) {
+                for (int neighbor : redAdj[node]) {
+                    if (!visited[neighbor][0]) {
+                        visited[neighbor][0] = true;
+                        queue.offer(new int[]{neighbor, dist + 1, 0});
+                    }
+                }
+            }
+
+            // Try moving to a BLUE edge (if last was red or none)
+            if (lastColor != 1) {
+                for (int neighbor : blueAdj[node]) {
+                    if (!visited[neighbor][1]) {
+                        visited[neighbor][1] = true;
+                        queue.offer(new int[]{neighbor, dist + 1, 1});
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+}
