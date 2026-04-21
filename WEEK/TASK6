@@ -1,0 +1,51 @@
+==========Vertical Order Traversal of a Binary Tree=========
+class Solution {
+    // Helper class to store node coordinates and value
+    class Triple {
+        int x, y, val;
+        Triple(int x, int y, int val) {
+            this.x = x;
+            this.y = y;
+            this.val = val;
+        }
+    }
+
+    public List<List<Integer>> verticalTraversal(TreeNode root) {
+        List<Triple> nodes = new ArrayList<>();
+        // 1. Perform DFS to collect coordinates
+        dfs(root, 0, 0, nodes);
+
+        // 2. Sort based on x, then y, then value
+        nodes.sort((a, b) -> {
+            if (a.x != b.x) return Integer.compare(a.x, b.x);
+            if (a.y != b.y) return Integer.compare(a.y, b.y);
+            return Integer.compare(a.val, b.val);
+        });
+
+        // 3. Group by column index
+        List<List<Integer>> result = new ArrayList<>();
+        if (nodes.isEmpty()) return result;
+
+        int currentX = nodes.get(0).x;
+        List<Integer> currentColumn = new ArrayList<>();
+        
+        for (Triple node : nodes) {
+            if (node.x != currentX) {
+                result.add(currentColumn);
+                currentColumn = new ArrayList<>();
+                currentX = node.x;
+            }
+            currentColumn.add(node.val);
+        }
+        result.add(currentColumn); // Don't forget the last group
+
+        return result;
+    }
+
+    private void dfs(TreeNode node, int x, int y, List<Triple> nodes) {
+        if (node == null) return;
+        nodes.add(new Triple(x, y, node.val));
+        dfs(node.left, x - 1, y + 1, nodes);
+        dfs(node.right, x + 1, y + 1, nodes);
+    }
+}
