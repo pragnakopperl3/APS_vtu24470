@@ -1,0 +1,24 @@
+class Solution {
+    public int kthSmallest(TreeNode root, int k) {
+        Stack<TreeNode> stack = new Stack<>();
+        TreeNode curr = root;
+        
+        while (curr != null || !stack.isEmpty()) {
+            // 1. Reach the leftmost node of the current subtree
+            while (curr != null) {
+                stack.push(curr);
+                curr = curr.left;
+            }
+            
+            // 2. Process the node (this is the "inorder" visit)
+            curr = stack.pop();
+            k--; 
+            if (k == 0) return curr.val;
+            
+            // 3. Move to the right subtree
+            curr = curr.right;
+        }
+        
+        return -1; // Should not be reached per problem constraints
+    }
+}
