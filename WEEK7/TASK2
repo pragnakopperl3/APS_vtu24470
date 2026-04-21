@@ -1,0 +1,25 @@
+class Solution {
+    public int findJudge(int n, int[][] trust) {
+        // We use n + 1 to align with 1-based indexing of people
+        int[] trustScores = new int[n + 1];
+        
+        for (int[] relation : trust) {
+            int movingFrom = relation[0];
+            int movingTo = relation[1];
+            
+            // Decrease score for the person who trusts
+            trustScores[movingFrom]--;
+            // Increase score for the person being trusted
+            trustScores[movingTo]++;
+        }
+        
+        // Check if anyone has a score of n - 1
+        for (int i = 1; i <= n; i++) {
+            if (trustScores[i] == n - 1) {
+                return i;
+            }
+        }
+        
+        return -1;
+    }
+}
