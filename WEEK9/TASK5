@@ -1,0 +1,23 @@
+class Solution {
+    public int[][] kClosest(int[][] points, int k) {
+        // Max-Heap: Compare distances in descending order
+        // Distance formula is sqrt(x^2 + y^2), but we can compare x^2 + y^2 to avoid sqrt
+        PriorityQueue<int[]> maxHeap = new PriorityQueue<>(
+            (a, b) -> (b[0] * b[0] + b[1] * b[1]) - (a[0] * a[0] + a[1] * a[1])
+        );
+
+        for (int[] point : points) {
+            maxHeap.add(point);
+            // If the heap exceeds size k, remove the farthest element
+            if (maxHeap.size() > k) {
+                maxHeap.poll();
+            }
+        }
+
+        int[][] result = new int[k][2];
+        while (k > 0) {
+            result[--k] = maxHeap.poll();
+        }
+        return result;
+    }
+}
