@@ -1,0 +1,26 @@
+class Solution {
+    public int coinChange(int[] coins, int amount) {
+        // Create a DP array where dp[i] is the min coins for amount i
+        // We initialize with amount + 1 because that's an impossible maximum
+        int max = amount + 1;
+        int[] dp = new int[amount + 1];
+        Arrays.fill(dp, max);
+        
+        // Base case: 0 coins are needed to make amount 0
+        dp[0] = 0;
+        
+        for (int i = 1; i <= amount; i++) {
+            for (int coin : coins) {
+                if (coin <= i) {
+                    // We take the minimum of:
+                    // 1. Not using this coin (current dp[i])
+                    // 2. Using this coin (1 + dp[i - coin])
+                    dp[i] = Math.min(dp[i], dp[i - coin] + 1);
+                }
+            }
+        }
+        
+        // If dp[amount] is still the max value, it means the amount cannot be formed
+        return dp[amount] > amount ? -1 : dp[amount];
+    }
+}
