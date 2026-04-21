@@ -1,0 +1,35 @@
+class Solution {
+    public boolean validPath(int n, int[][] edges, int source, int destination) {
+        if (source == destination) return true;
+        
+        int[] parent = new int[n];
+        // Initialize each node as its own parent
+        for (int i = 0; i < n; i++) {
+            parent[i] = i;
+        }
+        
+        // Union the nodes for every edge
+        for (int[] edge : edges) {
+            union(edge[0], edge[1], parent);
+        }
+        
+        // If they share the same root, a path exists
+        return find(source, parent) == find(destination, parent);
+    }
+    
+    private void union(int i, int j, int[] parent) {
+        int rootI = find(i, parent);
+        int rootJ = find(j, parent);
+        if (rootI != rootJ) {
+            parent[rootI] = rootJ;
+        }
+    }
+    
+    private int find(int i, int[] parent) {
+        if (parent[i] == i) {
+            return i;
+        }
+        // Path compression for efficiency
+        return parent[i] = find(parent[i], parent);
+    }
+}
